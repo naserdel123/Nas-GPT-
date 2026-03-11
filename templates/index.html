@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Chat & Image Generator</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        #chat-box { border:1px solid #ccc; padding:10px; height:300px; overflow:auto; }
+        .msg { margin:5px 0; }
+        .user { color: blue; }
+        .ai { color: green; }
+        img { max-width: 100%; margin-top:10px; }
+    </style>
+</head>
+<body>
+
+<h2>AI Chat & Image Generator</h2>
+
+<div id="chat-box"></div>
+
+<input id="msg" placeholder="اكتب رسالتك هنا" style="width:70%;">
+<button onclick="send()">إرسال</button>
+<button onclick="generate()">إنشاء صورة</button>
+
+<input id="img-prompt" placeholder="اكتب وصف الصورة" style="width:70%; margin-top:10px;"><br><br>
+
+<script>
+async function send(){
+    let msg = document.getElementById("msg").value;
+    if(!msg) return;
+    addMessage(msg,"user");
+    document.getElementById("msg").value = "";
+
+    let res = await fetch("/chat",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({message: msg})
+    });
+    let data = await res.json();
+    addMessage(data.reply,"ai");
+}
+
+async function generate(){
+    let prompt = document.getElementById("img-prompt").value;
+    if(!prompt) return;
+
+    let res = await fetch("/image",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({prompt: prompt})
+    });
+    let data = await res.json();
+
+    addImage(data.image);
+}
+
+function addMessage(text,cls){
+    let box = document.getElementById("chat-box");
+    let div = document.createElement("div");
+    div.className = "msg " + cls;
+    div.innerText = text;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+}
+
+function addImage(url){
+    let box = document.getElementById("chat-box");
+    let img = document.createElement("img");
+    img.src = url;
+    box.appendChild(img);
+    box.scrollTop = box.scrollHeight;
+}
+</script>
+
+</body>
+</html>
